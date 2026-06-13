@@ -1,0 +1,7 @@
+[Addon]
+Name=Avro Bangla Phonetic
+Category=InputMethod
+Library=avro
+Type=SharedLibrary
+OnDemand=True
+Configurable=True

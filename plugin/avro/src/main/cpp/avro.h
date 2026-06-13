@@ -1,0 +1,48 @@
+/*
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ */
+#ifndef FCITX_AVRO_AVRO_H
+#define FCITX_AVRO_AVRO_H
+
+#include <fcitx/addonfactory.h>
+#include <fcitx/addonmanager.h>
+#include <fcitx/inputcontext.h>
+#include <fcitx/inputmethodengine.h>
+#include <fcitx/instance.h>
+#include <fcitx/text.h>
+#include <fcitx-utils/misc.h>
+
+#include <string>
+
+#include "avro_parser.h"
+
+namespace fcitx {
+
+class AvroEngine : public InputMethodEngine {
+public:
+    explicit AvroEngine(Instance *instance) { FCITX_UNUSED(instance); }
+
+    void keyEvent(const InputMethodEntry &entry, KeyEvent &keyEvent) override;
+    void activate(const InputMethodEntry &entry, InputContextEvent &event) override;
+    void reset(const InputMethodEntry &entry, InputContextEvent &event) override;
+
+private:
+    static bool isProbhatEntry(const InputMethodEntry &entry);
+    void handleProbhatKeyEvent(KeyEvent &keyEvent);
+    void updatePreedit(InputContext *ic);
+    void clearBuffer(InputContext *ic);
+
+    AvroParser parser_;
+    std::string buffer_;
+};
+
+class AvroFactory : public AddonFactory {
+public:
+    AddonInstance *create(AddonManager *manager) override {
+        return new AvroEngine(manager->instance());
+    }
+};
+
+} // namespace fcitx
+
+#endif

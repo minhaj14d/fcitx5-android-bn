@@ -24,6 +24,9 @@ import org.fcitx.fcitx5.android.input.dependency.theme
 import org.fcitx.fcitx5.android.input.picker.PickerWindow
 import org.fcitx.fcitx5.android.input.popup.PopupActionListener
 import org.fcitx.fcitx5.android.input.popup.PopupComponent
+import org.fcitx.fcitx5.android.input.keyboard.bn.BanglaAvroKeyboard
+import org.fcitx.fcitx5.android.input.keyboard.bn.ProbhatKeyboard
+import org.fcitx.fcitx5.android.plugin.avro.AvroKeyboardIds
 import org.fcitx.fcitx5.android.input.wm.EssentialWindow
 import org.fcitx.fcitx5.android.input.wm.InputWindow
 import org.fcitx.fcitx5.android.input.wm.InputWindowManager
@@ -68,7 +71,9 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     private val keyboards: HashMap<String, BaseKeyboard> by lazy {
         hashMapOf(
             TextKeyboard.Name to TextKeyboard(context, theme),
-            NumberKeyboard.Name to NumberKeyboard(context, theme)
+            NumberKeyboard.Name to NumberKeyboard(context, theme),
+            BanglaAvroKeyboard.Name to BanglaAvroKeyboard(context, theme),
+            ProbhatKeyboard.Name to ProbhatKeyboard(context, theme),
         )
     }
     private var currentKeyboardName = ""
@@ -139,7 +144,10 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     }
 
     override fun onStartInput(info: EditorInfo, capFlags: CapabilityFlags) {
-        val targetLayout = when (info.inputType and InputType.TYPE_MASK_CLASS) {
+        val imeLayout = AvroKeyboardIds.layoutForIme(
+            fcitx.runImmediately { inputMethodEntryCached.uniqueName }
+        )
+        val targetLayout = imeLayout ?: when (info.inputType and InputType.TYPE_MASK_CLASS) {
             InputType.TYPE_CLASS_NUMBER -> NumberKeyboard.Name
             InputType.TYPE_CLASS_PHONE -> NumberKeyboard.Name
             else -> TextKeyboard.Name
@@ -148,6 +156,14 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     }
 
     override fun onImeUpdate(ime: InputMethodEntry) {
+        val layout = AvroKeyboardIds.layoutForIme(ime.uniqueName)
+        if (layout != null) {
+            switchLayout(layout, remember = false)
+        } else if (currentKeyboardName == BanglaAvroKeyboard.Name ||
+            currentKeyboardName == ProbhatKeyboard.Name
+        ) {
+            switchLayout(TextKeyboard.Name, remember = false)
+        }
         currentKeyboard?.onInputMethodUpdate(ime)
     }
 

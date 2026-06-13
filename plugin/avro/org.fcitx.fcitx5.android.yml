@@ -1,0 +1,4 @@
+name: Avro Plugin
+components:
+  - name: plugin
+    type: plugin
