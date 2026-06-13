@@ -5,10 +5,12 @@ package org.fcitx.fcitx5.android.input.keyboard.bn
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.SystemClock
 import android.view.View
 import androidx.annotation.Keep
 import androidx.core.view.allViews
 import org.fcitx.fcitx5.android.R
+import org.fcitx.fcitx5.android.core.FcitxKeyMapping
 import org.fcitx.fcitx5.android.core.InputMethodEntry
 import org.fcitx.fcitx5.android.core.KeyState
 import org.fcitx.fcitx5.android.core.KeyStates
@@ -31,6 +33,7 @@ import org.fcitx.fcitx5.android.input.keyboard.ReturnKey
 import org.fcitx.fcitx5.android.input.keyboard.SpaceKey
 import org.fcitx.fcitx5.android.input.keyboard.SymbolKey
 import org.fcitx.fcitx5.android.input.popup.PopupAction
+import org.fcitx.fcitx5.android.plugin.avro.AvroDotKeyCycleState
 import org.fcitx.fcitx5.android.plugin.avro.AvroKeyboardIds
 import splitties.views.imageResource
 
@@ -131,6 +134,7 @@ class BanglaAvroKeyboard(
     }
 
     private var capsState: CapsState = CapsState.None
+    private val avroDotKeyCycle = AvroDotKeyCycleState()
 
     private fun transformAlphabet(c: String): String = when (capsState) {
         CapsState.None -> c.lowercase()
@@ -154,6 +158,17 @@ class BanglaAvroKeyboard(
                             KeyAction.CommitAction(BANGLA_DIGITS[digit] ?: action.act),
                             source
                         )
+                        return
+                    }
+                    if (action.act == ".") {
+                        val tap = avroDotKeyCycle.onDotTap(SystemClock.uptimeMillis())
+                        if (tap.sendBackspaceBeforeCommit) {
+                            super.onAction(
+                                KeyAction.SymAction(KeySym(FcitxKeyMapping.FcitxKey_BackSpace)),
+                                source
+                            )
+                        }
+                        super.onAction(KeyAction.CommitAction(tap.commitText), source)
                         return
                     }
                     when (capsState) {
@@ -183,6 +198,7 @@ class BanglaAvroKeyboard(
 
     override fun onAttach() {
         capsState = CapsState.None
+        avroDotKeyCycle.reset()
         updateCapsButtonIcon()
         updateAlphabetKeys()
     }
@@ -202,6 +218,7 @@ class BanglaAvroKeyboard(
             ime.subMode.run { label.ifEmpty { name.ifEmpty { null } } }?.let { append(" ($it)") }
         }
         if (capsState != CapsState.None) switchCapsState()
+        avroDotKeyCycle.reset()
     }
 
     override fun onPopupAction(action: PopupAction) {

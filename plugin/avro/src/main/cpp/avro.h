@@ -13,6 +13,7 @@
 #include <fcitx-utils/misc.h>
 
 #include <string>
+#include <unordered_map>
 
 #include "avro_parser.h"
 
@@ -28,12 +29,18 @@ public:
 
 private:
     static bool isProbhatEntry(const InputMethodEntry &entry);
+    static bool isAvroInputChar(char ch);
     void handleProbhatKeyEvent(KeyEvent &keyEvent);
     void updatePreedit(InputContext *ic);
     void clearBuffer(InputContext *ic);
+    void clearPreedit(InputContext *ic);
+    std::string resolveCommit() const;
+    void commitBuffer(InputContext *ic);
+    void loadUserDict();
 
     AvroParser parser_;
     std::string buffer_;
+    std::unordered_map<std::string, std::string> userDict_;
 };
 
 class AvroFactory : public AddonFactory {

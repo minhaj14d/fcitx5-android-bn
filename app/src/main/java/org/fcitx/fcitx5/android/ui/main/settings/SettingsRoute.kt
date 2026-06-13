@@ -135,6 +135,9 @@ sealed class SettingsRoute : Parcelable {
     }
 
     @Serializable
+    data object AvroDict : SettingsRoute()
+
+    @Serializable
     data class PinyinDict(val uri: String? = null) : SettingsRoute() {
         constructor(uri: Uri) : this(uri.toString())
     }
@@ -242,6 +245,9 @@ sealed class SettingsRoute : Parcelable {
             )
             fragment<PinyinDictionaryFragment, PinyinDict> {
                 label = ctx.getString(R.string.pinyin_dict)
+            }
+            fragment<AvroDictionaryFragment, AvroDict> {
+                label = ctx.getString(R.string.avro_dict)
             }
             fragment<PunctuationEditorFragment, Punctuation>()
             fragment<QuickPhraseListFragment, QuickPhraseList> {

@@ -3,32 +3,117 @@
  */
 #include "avro.h"
 
+#include "probhat_keymap.h"
+
+#include <fcitx-utils/fdstreambuf.h>
 #include <fcitx-utils/key.h>
 #include <fcitx-utils/keysym.h>
+#include <fcitx-utils/standardpath.h>
 #include <fcitx/inputpanel.h>
 #include <fcitx/userinterface.h>
+
+#include <cctype>
+#include <istream>
+#include <sstream>
 
 namespace fcitx {
 
 FCITX_ADDON_FACTORY(AvroFactory)
 
-void AvroEngine::activate(const InputMethodEntry &, InputContextEvent &) { buffer_.clear(); }
+bool AvroEngine::isAvroInputChar(char ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '`' || ch == '^' ||
+           ch == ',' || ch == '.' || (ch >= '0' && ch <= '9');
+}
 
-void AvroEngine::reset(const InputMethodEntry &, InputContextEvent &) { buffer_.clear(); }
-
-void AvroEngine::clearBuffer(InputContext *ic) {
-    buffer_.clear();
+void AvroEngine::clearPreedit(InputContext *ic) {
     ic->inputPanel().setClientPreedit(Text());
     ic->updateUserInterface(UserInterfaceComponent::InputPanel);
 }
 
+void AvroEngine::activate(const InputMethodEntry &, InputContextEvent &event) {
+    buffer_.clear();
+    loadUserDict();
+    if (auto *ic = event.inputContext()) {
+        clearPreedit(ic);
+    }
+}
+
+void AvroEngine::reset(const InputMethodEntry &, InputContextEvent &event) {
+    buffer_.clear();
+    if (auto *ic = event.inputContext()) {
+        clearPreedit(ic);
+    }
+}
+
+void AvroEngine::clearBuffer(InputContext *ic) {
+    buffer_.clear();
+    clearPreedit(ic);
+}
+
 void AvroEngine::updatePreedit(InputContext *ic) {
     if (buffer_.empty()) {
-        ic->inputPanel().setClientPreedit(Text());
+        clearPreedit(ic);
     } else {
         ic->inputPanel().setClientPreedit(Text(parser_.parse(buffer_)));
+        ic->updateUserInterface(UserInterfaceComponent::InputPanel);
     }
-    ic->updateUserInterface(UserInterfaceComponent::InputPanel);
+}
+
+std::string AvroEngine::resolveCommit() const {
+    if (buffer_.empty()) {
+        return {};
+    }
+    if (buffer_.front() == '`') {
+        return buffer_.size() > 1 ? buffer_.substr(1) : "`";
+    }
+    if (const auto it = userDict_.find(buffer_); it != userDict_.end()) {
+        return it->second;
+    }
+    return parser_.parse(buffer_);
+}
+
+void AvroEngine::commitBuffer(InputContext *ic) {
+    if (buffer_.empty()) {
+        return;
+    }
+    ic->commitString(resolveCommit());
+    clearBuffer(ic);
+}
+
+void AvroEngine::loadUserDict() {
+    userDict_.clear();
+    const auto file =
+        StandardPaths::global().open(StandardPathsType::PkgData, "avro/user.dict.txt");
+    if (!file.isValid()) {
+        return;
+    }
+    IFDStreamBuf buf(file.fd());
+    std::istream in(&buf);
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        const auto tab = line.find('\t');
+        const auto eq = line.find('=');
+        const auto sep = tab != std::string::npos ? tab
+                         : eq != std::string::npos ? eq
+                                                   : std::string::npos;
+        if (sep == std::string::npos) {
+            continue;
+        }
+        auto key = line.substr(0, sep);
+        auto value = line.substr(sep + 1);
+        while (!key.empty() && std::isspace(static_cast<unsigned char>(key.back()))) {
+            key.pop_back();
+        }
+        while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front()))) {
+            value.erase(value.begin());
+        }
+        if (!key.empty() && !value.empty()) {
+            userDict_.emplace(std::move(key), std::move(value));
+        }
+    }
 }
 
 bool AvroEngine::isProbhatEntry(const InputMethodEntry &entry) {
@@ -48,11 +133,6 @@ void AvroEngine::handleProbhatKeyEvent(KeyEvent &keyEvent) {
     auto *ic = keyEvent.inputContext();
     const auto sym = keyEvent.key().sym();
 
-    if (sym == FcitxKey_BackSpace) {
-        keyEvent.filterAndAccept();
-        return;
-    }
-
     if (sym == FcitxKey_Return) {
         ic->commitString("\n");
         keyEvent.filterAndAccept();
@@ -65,12 +145,24 @@ void AvroEngine::handleProbhatKeyEvent(KeyEvent &keyEvent) {
         return;
     }
 
-    if (keyEvent.key().isSimple()) {
-        const auto text = Key::keySymToUTF8(sym);
-        if (!text.empty()) {
-            ic->commitString(text);
-            keyEvent.filterAndAccept();
-        }
+    if (!keyEvent.key().isSimple()) {
+        return;
+    }
+
+    const auto ch = static_cast<char>(sym);
+    const bool shift = keyEvent.key().states().test(KeyState::Shift);
+    std::string text;
+    if (const auto *letter = avro::probhatLetter(ch, shift)) {
+        text = letter;
+    } else if (const auto *punct = avro::probhatPunctuation(ch)) {
+        text = punct;
+    } else {
+        text = Key::keySymToUTF8(sym);
+    }
+
+    if (!text.empty()) {
+        ic->commitString(text);
+        keyEvent.filterAndAccept();
     }
 }
 
@@ -104,22 +196,31 @@ void AvroEngine::keyEvent(const InputMethodEntry &entry, KeyEvent &keyEvent) {
 
     if (sym == FcitxKey_Return || sym == FcitxKey_space) {
         if (!buffer_.empty()) {
-            const auto commit = parser_.parse(buffer_);
+            const auto commit = resolveCommit();
             ic->commitString(commit + (sym == FcitxKey_space ? " " : "\n"));
             clearBuffer(ic);
-            keyEvent.filterAndAccept();
+        } else {
+            ic->commitString(sym == FcitxKey_space ? " " : "\n");
         }
+        keyEvent.filterAndAccept();
         return;
     }
 
     if (keyEvent.key().isSimple()) {
         const auto ch = static_cast<char>(sym);
-        if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '`' || ch == '^' ||
-            ch == ',' || ch == '.' || (ch >= '0' && ch <= '9')) {
+        if (isAvroInputChar(ch)) {
             buffer_.push_back(ch);
             updatePreedit(ic);
             keyEvent.filterAndAccept();
             return;
+        }
+        if (!buffer_.empty()) {
+            commitBuffer(ic);
+            const auto text = Key::keySymToUTF8(sym);
+            if (!text.empty()) {
+                ic->commitString(text);
+            }
+            keyEvent.filterAndAccept();
         }
     }
 }
