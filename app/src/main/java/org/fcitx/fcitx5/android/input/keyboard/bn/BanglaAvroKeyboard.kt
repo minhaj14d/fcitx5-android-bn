@@ -33,8 +33,8 @@ import org.fcitx.fcitx5.android.input.keyboard.ReturnKey
 import org.fcitx.fcitx5.android.input.keyboard.SpaceKey
 import org.fcitx.fcitx5.android.input.keyboard.SymbolKey
 import org.fcitx.fcitx5.android.input.popup.PopupAction
-import org.fcitx.fcitx5.android.plugin.avro.AvroDotKeyCycleState
-import org.fcitx.fcitx5.android.plugin.avro.AvroKeyboardIds
+import org.fcitx.fcitx5.android.plugin.bangla.AvroDotKeyCycleState
+import org.fcitx.fcitx5.android.plugin.bangla.AvroKeyboardIds
 import splitties.views.imageResource
 
 /**

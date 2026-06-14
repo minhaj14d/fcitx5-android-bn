@@ -10,17 +10,31 @@ import java.io.InputStream
 /**
  * User Bangla dictionary for Avro phonetic input.
  *
- * Entries are stored at `data/avro/user.dict.txt` under the main app external storage
- * (fcitx [FCITX_DATA_HOME]/avro/user.dict.txt). Each line is `roman<TAB>বাংলা` or
+ * Entries are stored at `data/bangla/user.dict.txt` under the main app external storage
+ * (fcitx [FCITX_DATA_HOME]/bangla/user.dict.txt). Each line is `roman<TAB>বাংলা` or
  * `roman=বাংলা`. Lines starting with `#` are ignored.
  */
 object AvroDictManager {
 
-    private val dictDir = File(
-        appContext.getExternalFilesDir(null)!!, "data/avro"
-    ).also { it.mkdirs() }
+    private val externalDataRoot = appContext.getExternalFilesDir(null)!!
+
+    private val dictDir = File(externalDataRoot, "data/bangla").also { it.mkdirs() }
+
+    /** @deprecated Legacy path before plugin rename to fcitx5-bangla */
+    private val legacyDictFile = File(externalDataRoot, "data/avro/user.dict.txt")
 
     val userDictFile: File get() = File(dictDir, "user.dict.txt")
+
+    init {
+        migrateLegacyDictIfNeeded()
+    }
+
+    /** Copy dictionary from pre-rename `data/avro/user.dict.txt` if present. */
+    private fun migrateLegacyDictIfNeeded() {
+        if (legacyDictFile.isFile && !userDictFile.isFile) {
+            legacyDictFile.copyTo(userDictFile)
+        }
+    }
 
     fun entryCount(): Int = if (userDictFile.isFile) {
         userDictFile.readLines().count { line ->

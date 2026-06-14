@@ -1,0 +1,7 @@
+[Addon]
+Name=Bangla
+Category=InputMethod
+Library=bangla
+Type=SharedLibrary
+OnDemand=True
+Configurable=True

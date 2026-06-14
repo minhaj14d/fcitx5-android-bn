@@ -13,7 +13,7 @@ import org.fcitx.fcitx5.android.utils.lazyRoute
 import org.fcitx.fcitx5.android.utils.navigateWithAnim
 import androidx.navigation.fragment.findNavController
 import org.fcitx.fcitx5.android.R
-import org.fcitx.fcitx5.android.plugin.avro.AvroKeyboardIds
+import org.fcitx.fcitx5.android.plugin.bangla.AvroKeyboardIds
 
 class InputMethodConfigFragment : FcitxPreferenceFragment() {
     val args by lazyRoute<SettingsRoute.InputMethodConfig>()

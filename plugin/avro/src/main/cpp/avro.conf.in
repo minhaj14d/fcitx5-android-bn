@@ -1,7 +1,0 @@
-[InputMethod]
-Name=Avro
-Icon=fcitx-avro
-Label=Avro
-LangCode=bn
-Addon=avro
-Configurable=True

@@ -1,1 +1,0 @@
--keep class org.fcitx.fcitx5.android.plugin.avro.** { *; }

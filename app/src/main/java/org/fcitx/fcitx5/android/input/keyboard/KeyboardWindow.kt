@@ -26,7 +26,7 @@ import org.fcitx.fcitx5.android.input.popup.PopupActionListener
 import org.fcitx.fcitx5.android.input.popup.PopupComponent
 import org.fcitx.fcitx5.android.input.keyboard.bn.BanglaAvroKeyboard
 import org.fcitx.fcitx5.android.input.keyboard.bn.ProbhatKeyboard
-import org.fcitx.fcitx5.android.plugin.avro.AvroKeyboardIds
+import org.fcitx.fcitx5.android.plugin.bangla.AvroKeyboardIds
 import org.fcitx.fcitx5.android.input.wm.EssentialWindow
 import org.fcitx.fcitx5.android.input.wm.InputWindow
 import org.fcitx.fcitx5.android.input.wm.InputWindowManager
