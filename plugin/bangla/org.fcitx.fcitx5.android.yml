@@ -1,0 +1,4 @@
+name: Bangla Plugin
+components:
+  - name: plugin
+    type: plugin

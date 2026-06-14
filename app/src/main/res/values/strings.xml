@@ -34,6 +34,10 @@
     <string name="setup_keyboard">Finish setting up the keyboard</string>
     <string name="setup_channel">Setup Wizard</string>
     <string name="pinyin_dict">Pinyin Dictionaries</string>
+    <string name="avro_dict">Avro Dictionary</string>
+    <string name="avro_dict_import">Import user dictionary</string>
+    <string name="avro_dict_import_summary">%1$d entries loaded. Tap to import a plain-text file (roman&lt;TAB&gt;বাংলা per line).</string>
+    <string name="avro_dict_imported">Imported %1$d dictionary entries. Switch IME to reload.</string>
     <string name="reloading">Reloading</string>
     <string name="importing">Importing</string>
     <string name="import_error">Import Error</string>

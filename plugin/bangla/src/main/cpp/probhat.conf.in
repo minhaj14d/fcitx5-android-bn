@@ -1,0 +1,7 @@
+[InputMethod]
+Name=Probhat
+Icon=fcitx-avro
+Label=Probhat
+LangCode=bn
+Addon=bangla
+Configurable=True
