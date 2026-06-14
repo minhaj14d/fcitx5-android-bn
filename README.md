@@ -1,6 +1,32 @@
+# fcitx5-android-bn — Bengali input for Android
+
+**This is a standalone fork of [fcitx5-android](https://github.com/fcitx5-android/fcitx5-android) with built-in Bangla support.** It is not the upstream Android project. Language-specific plugins belong in separate repos or distributions like this one — do not open pull requests against `fcitx5-android/fcitx5-android` for Bangla support.
+
+This fork adds the **`plugin/bangla`** addon with two Bengali input methods:
+
+| IME | Description |
+|-----|-------------|
+| **Avro** | Phonetic transliteration — Roman QWERTY soft keyboard feeds the engine; live preedit and commit |
+| **Probhat** | Fixed Bengali layout — keys commit Bengali glyphs directly |
+
+Also included: Bangla soft keyboards (`BanglaAvroKeyboard`, `ProbhatKeyboard`), Avro user dictionary import in settings, and auto-migration from the old `data/avro/` path to `data/bangla/`.
+
+Install the **Bangla plugin APK** from this repo’s releases (or build `:plugin:bangla`), then enable **Avro** or **Probhat** in Fcitx5 Android settings.
+
+### Bug reports
+
+- **Bangla plugin, keyboards, dictionary:** [github.com/minhaj14d/fcitx5-android-bn/issues](https://github.com/minhaj14d/fcitx5-android-bn/issues)
+- **Core fcitx5-android:** [github.com/fcitx5-android/fcitx5-android/issues](https://github.com/fcitx5-android/fcitx5-android/issues)
+
+Related: [fcitx5-bn](https://github.com/minhaj14d/fcitx5-bn) (desktop fork with the same `bangla` addon).
+
+---
+
 # fcitx5-android
 
 [Fcitx5](https://github.com/fcitx/fcitx5) input method framework and engines ported to Android.
+
+The sections below are inherited from upstream fcitx5-android documentation.
 
 ## Download
 
@@ -42,6 +68,7 @@ In case you want Fcitx5 on other platforms: [macOS](https://github.com/fcitx-con
 - Korean (via [Hangul Plugin](./plugin/hangul))
 - Sinhala (via [Sayura Plugin](./plugin/sayura))
 - Thai (via [Thai Plugin](./plugin/thai))
+- **Bangla** (via [Bangla Plugin](./plugin/bangla) — **this fork only**; Avro phonetic + Probhat)
 - Generic (via [RIME Plugin](./plugin/rime), supports importing custom schemas)
 
 ### Implemented Features
@@ -106,7 +133,7 @@ Discuss on Telegram: [@fcitx5_android_group](https://t.me/fcitx5_android_group) 
 First, clone this repository and fetch all submodules:
 
 ```shell
-git clone git@github.com:fcitx5-android/fcitx5-android.git
+git clone git@github.com:minhaj14d/fcitx5-android-bn.git
 git submodule update --init --recursive
 ```
 
